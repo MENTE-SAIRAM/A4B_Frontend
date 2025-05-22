@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="header__nav">
+            <ul class="header__nav-list">
+                <li class="header__nav-item"><a class="header__nav-link" href="index.html">Home</a></li>
+                <li class="header__nav-item"><a class="header__nav-link" href="cart.html">Cart</a></li>
+                <li class="header__nav-item"><a class="header__nav-link" href="orders.html">Orders</a></li>
+                <li class="header__nav-item"><a class="header__nav-link" href="login.html" id="auth-link">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="main">
+        <h1>Admin Dashboard</h1>
+        <section>
+            <h2>Create Product</h2>
+            <form class="form" id="create-product-form">
+                <label class="form__label" for="name">Product Name</label>
+                <input class="form__input" type="text" id="name" required>
+                <label class="form__label" for="price">Price</label>
+                <input class="form__input" type="number" id="price" required>
+                <label class="form__label" for="image">Image URL</label>
+                <input class="form__input" type="text" id="image">
+                <button class="form__button" type="submit">Create Product</button>
+            </form>
+        </section>
+        <section>
+            <h2>Manage Products</h2>
+            <div class="product-grid" id="product-list"></div>
+        </section>
+        <section>
+            <h2>All Users</h2>
+            <div id="user-list"></div>
+        </section>
+    </main>
+    <footer class="footer">
+        <p>© 2025 E-commerce App</p>
+    </footer>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
