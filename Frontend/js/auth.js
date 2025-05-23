@@ -9,26 +9,32 @@ document.addEventListener("DOMContentLoaded", () => {
   const orderLink = document.getElementById("orderBtn");
   const cartBtns = document.querySelectorAll(".add-to-cart");
 
+  // Helper to get auth state
+  function getAuth() {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+    return { token, user };
+  }
+
   // Handle login
   if (loginForm) {
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const username = loginForm.username.value.trim();
+      const user_id = loginForm.username.value.trim();
       const password = loginForm.password.value.trim();
 
       try {
         const res = await fetch(`${API_BASE}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
+          body: JSON.stringify({ user_id, password }), // Fixed
         });
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Login failed");
 
-        // ✅ Store both token and username
         localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify({ username }));
+        localStorage.setItem("user", JSON.stringify({ user_id })); // Fixed
 
         alert("Login successful!");
         window.location.href = "index.html";
@@ -42,14 +48,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (registerForm) {
     registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const username = registerForm.username.value.trim();
+      const user_id = registerForm.username.value.trim();
       const password = registerForm.password.value.trim();
 
       try {
         const res = await fetch(`${API_BASE}/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
+          body: JSON.stringify({ user_id, password }), // Fixed
         });
 
         const data = await res.json();
@@ -63,9 +69,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ✅ UI update based on login state
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+  // Update UI based on login state
+  const { token, user } = getAuth();
 
   if (token && user) {
     if (loginBtn) loginBtn.style.display = "none";
@@ -75,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (logoutBtn) logoutBtn.style.display = "none";
   }
 
-  // Logout button
+  // Logout handler
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
       localStorage.removeItem("token");
@@ -84,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ✅ Prevent cart access if not logged in
+  // Block cart access if not logged in
   if (cartLink) {
     cartLink.addEventListener("click", (e) => {
       if (!token || !user) {
@@ -95,18 +100,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ✅ Prevent order history access if not logged in
+  // Block order access if not logged in
   if (orderLink) {
     orderLink.addEventListener("click", (e) => {
       if (!token || !user) {
         e.preventDefault();
-        alert("Please login to access your order history.");
+        alert("Please login to access your orders.");
         window.location.href = "login.html";
       }
     });
   }
 
-  // ✅ Prevent add-to-cart actions if not logged in
+  // Block add-to-cart if not logged in
   if (cartBtns.length > 0) {
     cartBtns.forEach((btn) => {
       btn.addEventListener("click", (e) => {

@@ -25,23 +25,7 @@ function renderProducts(page = 1) {
   });
 
   attachCartEvents();
-}
-
-function renderPagination() {
-  const totalPages = Math.ceil(mockProducts.length / PRODUCTS_PER_PAGE);
-  const pagination = document.getElementById("pagination");
-  pagination.innerHTML = "";
-
-  for (let i = 1; i <= totalPages; i++) {
-    const btn = document.createElement("button");
-    btn.className = "pagination__btn";
-    btn.textContent = i;
-    btn.addEventListener("click", () => {
-      currentPage = i;
-      renderProducts(i);
-    });
-    pagination.appendChild(btn);
-  }
+  updatePaginationControls();
 }
 
 function attachCartEvents() {
@@ -69,7 +53,43 @@ function attachCartEvents() {
   });
 }
 
+function renderPaginationControls() {
+  const pagination = document.getElementById("pagination");
+  pagination.innerHTML = `
+    <button id="prevBtn" class="pagination__btn">Prev</button>
+    <span id="pageInfo" class="pagination__info"></span>
+    <button id="nextBtn" class="pagination__btn">Next</button>
+  `;
 
-// Run on page load
-renderProducts(currentPage);
-renderPagination();
+  document.getElementById("prevBtn").addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderProducts(currentPage);
+    }
+  });
+
+  document.getElementById("nextBtn").addEventListener("click", () => {
+    const totalPages = Math.ceil(mockProducts.length / PRODUCTS_PER_PAGE);
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderProducts(currentPage);
+    }
+  });
+}
+
+function updatePaginationControls() {
+  const totalPages = Math.ceil(mockProducts.length / PRODUCTS_PER_PAGE);
+  const pageInfo = document.getElementById("pageInfo");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+
+  if (!pageInfo || !prevBtn || !nextBtn) return;
+
+  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+  prevBtn.disabled = currentPage === 1;
+  nextBtn.disabled = currentPage === totalPages;
+}
+
+// Initialize everything
+renderPaginationControls();  // Render pagination buttons first
+renderProducts(currentPage); // Then load products and update controls
