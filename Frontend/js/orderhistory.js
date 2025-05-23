@@ -1,48 +1,77 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const user = JSON.parse(localStorage.getItem("user"));
+const API_BASE_URL = 'http://localhost:5000/api';
+
+document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");
   const orderList = document.getElementById("orderList");
 
-  if (!user || !token) {
+  if (!token) {
     alert("Please login to view your order history.");
     window.location.href = "login.html";
     return;
   }
 
-  const orders = [
-    {
-      id: 1001,
-      date: "2025-05-10",
-      items: [
-        { title: "Pixel 7", price: 799, image: "https://via.placeholder.com/100" },
-        { title: "iPhone 14 Pro", price: 1199, image: "https://via.placeholder.com/100" }
-      ]
-    },
-    {
-      id: 1002,
-      date: "2025-05-05",
-      items: [
-        { title: "Samsung Galaxy S24", price: 999, image: "https://via.placeholder.com/100" }
-      ]
-    }
-  ];
-
-  orders.forEach((order) => {
-    const section = document.createElement("section");
-    section.className = "order";
-    section.innerHTML = `<h3>Order #${order.id} — ${order.date}</h3>`;
-
-    order.items.forEach((item) => {
-      const div = document.createElement("div");
-      div.className = "product-card";
-      div.innerHTML = `
-        <img src="${item.image}" alt="${item.title}" class="product-card__img" />
-        <h3 class="product-card__title">${item.title}</h3>
-        <p class="product-card__price">$${item.price}</p>
-      `;
-      section.appendChild(div);
+  try {
+    const response = await fetch(`${API_BASE_URL}/orders/orderhistory`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
 
-    orderList.appendChild(section);
-  });
+    if (!response.ok) throw new Error("Failed to fetch order history.");
+
+    const data = await response.json();
+    const orders = data.orders || [];
+    console.log(orders);
+
+    if (orders.length === 0) {
+      orderList.innerHTML = "<p>No orders found.</p>";
+      return;
+    }
+
+    // Group orders by date
+    const groupedByDate = {};
+
+    orders.forEach(order => {
+      const date = new Date(order.created_at).toLocaleDateString();
+      if (!groupedByDate[date]) {
+        groupedByDate[date] = [];
+      }
+      groupedByDate[date].push(...order.items);
+    });
+
+    const html = Object.entries(groupedByDate).map(([date, items]) => {
+      const productCards = items.map(item => {
+        const name = item.name || "Iphone 11";
+        const price = item.price || "999";
+        const quantity = item.quantity || 0;
+        const subtotal = (parseFloat(price) * quantity).toFixed(2);
+
+        return `
+          <div class="product-card">
+            <img src="https://www.aptronixindia.com/media/catalog/product/cache/31f0162e6f7d821d2237f39577122a8a/r/1/r1594_starlight_pdp_image_position-1a_avail__en-in-removebg-preview_1.png" alt="${name}" class="product-card__image" />
+            <div class="product-card__info">
+              <h3>${name}</h3>
+              <p>Quantity: ${quantity}</p>
+              <p>Price: Rs ${price}</p>
+              <p><strong>Subtotal:</strong> Rs ${subtotal}</p>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      return `
+        <div class="order-day-box">
+          <h3 class="order-day-title">Orders on ${date}</h3>
+          <div class="product-list">${productCards}</div>
+        </div>
+      `;
+    }).join("");
+
+    orderList.innerHTML = html;
+
+  } catch (error) {
+    console.error("Error loading orders:", error);
+    orderList.innerHTML = "<p>Failed to load order history.</p>";
+  }
 });

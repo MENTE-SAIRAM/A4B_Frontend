@@ -1,15 +1,18 @@
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
-export async function fetchProducts(page = 1, limit = 10) {
-    const response = await fetch(`${API_BASE_URL}/products?page=${page}&limit=${limit}`, {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-        }
-    });
-    return response.json();
+export async function fetchProducts(page = 1, limit = 6) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products?page=${page}&limit=${limit}`);
+    if (!response.ok) throw new Error("Failed to fetch products");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return { products: [], total: 0 };
+  }
 }
+
+
 
 export async function fetchProduct(id) {
     const response = await fetch(`${API_BASE_URL}/products/${id}`, {
@@ -108,15 +111,17 @@ export async function removeFromCart(productId) {
     return response.json();
 }
 
-export async function placeOrder() {
-    const response = await fetch(`${API_BASE_URL}/orders`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-    });
-    return response.json();
+export async function placeOrder(cart) {
+  const response = await fetch(`${API_BASE_URL}/orders`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify({ cart })  // Send cart data
+  });
+
+  return response.json();
 }
 
 export async function fetchOrders(page = 1, limit = 10) {

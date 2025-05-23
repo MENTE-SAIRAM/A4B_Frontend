@@ -5,18 +5,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const registerForm = document.getElementById("registerForm");
   const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
-  const cartLink = document.getElementById("cartBtn");
+  const cartLink = document.getElementById("add-to-cart");
   const orderLink = document.getElementById("orderBtn");
-  const cartBtns = document.querySelectorAll(".add-to-cart");
 
-  // Helper to get auth state
   function getAuth() {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
     return { token, user };
   }
 
-  // Handle login
   if (loginForm) {
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -27,14 +24,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const res = await fetch(`${API_BASE}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id, password }), // Fixed
+          body: JSON.stringify({ user_id, password }),
         });
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Login failed");
 
         localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify({ user_id })); // Fixed
+        localStorage.setItem("user", JSON.stringify({ user_id }));
 
         alert("Login successful!");
         window.location.href = "index.html";
@@ -44,7 +41,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Handle registration
   if (registerForm) {
     registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -55,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const res = await fetch(`${API_BASE}/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id, password }), // Fixed
+          body: JSON.stringify({ user_id, password }),
         });
 
         const data = await res.json();
@@ -69,7 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Update UI based on login state
   const { token, user } = getAuth();
 
   if (token && user) {
@@ -80,7 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (logoutBtn) logoutBtn.style.display = "none";
   }
 
-  // Logout handler
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
       localStorage.removeItem("token");
@@ -89,18 +83,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Block cart access if not logged in
   if (cartLink) {
     cartLink.addEventListener("click", (e) => {
       if (!token || !user) {
         e.preventDefault();
-        alert("Please login to access the cart.");
+        alert("Please login to add products to the cart.");
         window.location.href = "login.html";
       }
     });
   }
 
-  // Block order access if not logged in
   if (orderLink) {
     orderLink.addEventListener("click", (e) => {
       if (!token || !user) {
@@ -108,19 +100,6 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Please login to access your orders.");
         window.location.href = "login.html";
       }
-    });
-  }
-
-  // Block add-to-cart if not logged in
-  if (cartBtns.length > 0) {
-    cartBtns.forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        if (!token || !user) {
-          e.preventDefault();
-          alert("Please login to add items to cart.");
-          window.location.href = "login.html";
-        }
-      });
     });
   }
 });

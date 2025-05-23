@@ -64,51 +64,64 @@
 
   // cartTotalElement.textContent = total.toFixed(2);
 // });
-import { mockProducts } from './mock-data.js';
+import { fetchProducts } from "./api.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const user = JSON.parse(localStorage.getItem("user"));
-const token = localStorage.getItem("token");
-if (!user || !token) {
+  const token = localStorage.getItem("token");
+
+  if (!user || !token) {
     alert("Please login to view your cart.");
     window.location.href = "login.html";
     return;
   }
+
   const cartItemsContainer = document.getElementById("cartItems");
   const cartTotalElement = document.getElementById("cartTotal");
 
-  // Step 1: Get cart data
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const cart = JSON.parse(localStorage.getItem("cart")) || {};
+  const productIds = Object.keys(cart);
 
-  if (cart.length === 0) {
+  if (productIds.length === 0) {
     cartItemsContainer.innerHTML = "<p>Your cart is empty.</p>";
     cartTotalElement.textContent = "0.00";
     return;
   }
 
-  let total = 0;
+  try {
+    // Use your exported fetchProducts function
+    const data = await fetchProducts();
+    const products = data.products || [];
 
-  // Step 2: Render each cart item with quantity and price
-  cartItemsContainer.innerHTML = cart.map(item => {
-    const product = mockProducts.find(p => p.id === parseInt(item.id));
-    if (!product) return "";
+    let total = 0;
 
-    const subtotal = parseFloat(product.price) * item.quantity;
-    total += subtotal;
+    const html = productIds.map(id => {
+      const product = products.find(p => p.id === id);
+      if (!product) return "";
 
-    return `
-      <div class="product-card">
-        <img src="${product.image}" alt="${product.name}" class="product-card__image" />
-        <div class="product-card__info">
-          <h3>${product.name}</h3>
-          <p>Brand: ${product.brand}</p>
-          <p>Price: $${product.price}</p>
-          <p>Quantity: ${item.quantity}</p>
-          <p><strong>Subtotal:</strong> $${subtotal.toFixed(2)}</p>
+      const quantity = cart[id];
+      const subtotal = product.price * quantity;
+      total += subtotal;
+
+      return `
+        <div class="product-card">
+          <img src="https://www.aptronixindia.com/media/catalog/product/cache/31f0162e6f7d821d2237f39577122a8a/r/1/r1594_starlight_pdp_image_position-1a_avail__en-in-removebg-preview_1.png" alt="${product.name}" class="product-card__image" />
+          <div class="product-card__info">
+            <h3>${product.name}</h3>
+            <p>Brand: ${product.name || "N/A"}</p>
+            <p>Price: Rs ${product.price}</p>
+            <p>Quantity: ${quantity}</p>
+            <p><strong>Subtotal:</strong> Rs ${subtotal.toFixed(2)}</p>
+          </div>
         </div>
-      </div>
-    `;
-  }).join("");
+      `;
+    }).join("");
 
-  cartTotalElement.textContent = total.toFixed(2);
+    cartItemsContainer.innerHTML = html;
+    cartTotalElement.textContent = total.toFixed(2);
+  } catch (error) {
+    console.error("Error loading products:", error);
+    cartItemsContainer.innerHTML = "<p>Failed to load cart items.</p>";
+    cartTotalElement.textContent = "0.00";
+  }
 });

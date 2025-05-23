@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cart | E-Commerce</title>
-  <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/cart.css" />
 </head>
 <body>
@@ -13,21 +12,27 @@
     <nav class="header__nav">
       <a href="index.html" class="header__link">Home</a>
       <a href="cart.html" class="header__link">Cart</a>
+      <a href="orders.html" class="header__link">Order</a>
       <button id="logoutBtn" class="header__link" style="background:none;border:none;cursor:pointer;">Logout</button>
     </nav>
   </header>
 
   <main>
-    <section class="cart">
-      <h2 style="text-align:center;margin: 1rem 0;">Your Cart</h2>
-      <div id="cartItems" class="product-list"></div>
-      <div style="text-align:center; margin: 1rem;">
-        <strong>Total:</strong> Rs<span id="cartTotal">2198</span>
-      </div>
-    </section>
-  </main>
+  <section class="cart">
+    <h2 style="text-align:center;margin: 1rem 0;">Your Cart</h2>
+    <div id="cartItems" class="product-list"></div>
+    <div style="text-align:center; margin: 1rem;">
+      <strong>Total:</strong> Rs<span id="cartTotal">2198</span>
+    </div>
+    <div style="text-align:center; margin: 1rem;">
+      <button id="placeOrderBtn" class="btn">Order Now</button>
+    </div>
+  </section>
+</main>
 
   <script src="js/auth.js"></script>
   <script type="module" src="js/cart.js"></script>
+  <script type="module" src="js/order.js"></script>
+  <script type="module" src="js/auth.js"></script>
 </body>
 </html>

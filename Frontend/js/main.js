@@ -1,95 +1,110 @@
-import { mockProducts } from "./mock-data.js";
+import { fetchProducts } from "./api.js";
 
-const PRODUCTS_PER_PAGE = 6;
+const DEFAULT_IMAGE_URL = "https://www.aptronixindia.com/media/catalog/product/cache/31f0162e6f7d821d2237f39577122a8a/r/1/r1594_starlight_pdp_image_position-1a_avail__en-in-removebg-preview_1.png";
+
 let currentPage = 1;
+const limit = 6;
+let totalPages = 1;
 
-function renderProducts(page = 1) {
-  const start = (page - 1) * PRODUCTS_PER_PAGE;
-  const end = start + PRODUCTS_PER_PAGE;
-  const productList = document.getElementById("productList");
-  productList.innerHTML = "";
-
-  const productsToShow = mockProducts.slice(start, end);
-
-  productsToShow.forEach((product) => {
-    const card = document.createElement("article");
-    card.className = "product-card";
-    card.innerHTML = `
-      <img src="${product.image}" alt="${product.name}" class="product-card__image" />
-      <h2 class="product-card__name">${product.name}</h2>
-      <p class="product-card__brand">${product.brand}</p>
-      <p class="product-card__price">$${product.price}</p>
-      <button class="product-card__button" data-id="${product.id}">Add to Cart</button>
-    `;
-    productList.appendChild(card);
-  });
-
-  attachCartEvents();
-  updatePaginationControls();
+// Get login state
+function getAuth() {
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+  return { token, user };
 }
 
-function attachCartEvents() {
-  document.querySelectorAll(".product-card__button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
+// Cart handling
+function handleAddToCart(productId) {
+  let cart = JSON.parse(localStorage.getItem("cart")) || {};
+
+  if (cart[productId]) {
+    cart[productId] += 1;
+  } else {
+    cart[productId] = 1;
+  }
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+  alert("Item added to cart!");
+}
+
+// Attach click listeners to Add to Cart buttons
+function attachAddToCartEvents() {
+  const buttons = document.querySelectorAll(".add-to-cart");
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const { token, user } = getAuth();
+      if (!token || !user) {
+        e.preventDefault();
+        alert("Please login to add items to cart.");
         window.location.href = "login.html";
         return;
       }
 
-      const productId = btn.dataset.id;
-      let cart = JSON.parse(localStorage.getItem("cart") || "[]");
-
-      const existingItem = cart.find(item => item.id === productId);
-      if (existingItem) {
-        existingItem.quantity += 1;
-      } else {
-        cart.push({ id: productId, quantity: 1 });
-      }
-
-      localStorage.setItem("cart", JSON.stringify(cart));
-      alert("Product added to cart!");
+      const productId = btn.getAttribute("data-id");
+      handleAddToCart(productId);
     });
   });
 }
 
-function renderPaginationControls() {
-  const pagination = document.getElementById("pagination");
-  pagination.innerHTML = `
-    <button id="prevBtn" class="pagination__btn">Prev</button>
-    <span id="pageInfo" class="pagination__info"></span>
-    <button id="nextBtn" class="pagination__btn">Next</button>
-  `;
+// Render product cards
+function renderProducts(products) {
+  const container = document.getElementById("productList");
+  container.innerHTML = "";
 
-  document.getElementById("prevBtn").addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage--;
-      renderProducts(currentPage);
-    }
+  if (!Array.isArray(products) || products.length === 0) {
+    container.innerHTML = "<p>No products available.</p>";
+    return;
+  }
+
+  products.forEach(product => {
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.innerHTML = `
+      <img src="${DEFAULT_IMAGE_URL}" alt="${product.name}" class="product-card__image">
+      <h3 class="product-card__name">${product.name}</h3>
+      <p class="product-card__description">${product.description}</p>
+      <div class="product-card__footer">
+        <span class="product-card__price">Rs ${product.price}</span>
+        <button class="add-to-cart" data-id="${product.id}">Add to Cart</button>
+      </div>
+    `;
+    container.appendChild(card);
   });
 
-  document.getElementById("nextBtn").addEventListener("click", () => {
-    const totalPages = Math.ceil(mockProducts.length / PRODUCTS_PER_PAGE);
-    if (currentPage < totalPages) {
-      currentPage++;
-      renderProducts(currentPage);
-    }
-  });
+  attachAddToCartEvents();
 }
 
+// Update pagination display
 function updatePaginationControls() {
-  const totalPages = Math.ceil(mockProducts.length / PRODUCTS_PER_PAGE);
   const pageInfo = document.getElementById("pageInfo");
-  const prevBtn = document.getElementById("prevBtn");
-  const nextBtn = document.getElementById("nextBtn");
-
-  if (!pageInfo || !prevBtn || !nextBtn) return;
-
   pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-  prevBtn.disabled = currentPage === 1;
-  nextBtn.disabled = currentPage === totalPages;
 }
 
-// Initialize everything
-renderPaginationControls();  // Render pagination buttons first
-renderProducts(currentPage); // Then load products and update controls
+// Pagination
+document.getElementById("prevPage").addEventListener("click", async () => {
+  if (currentPage > 1) {
+    currentPage--;
+    const result = await fetchProducts(currentPage, limit);
+    renderProducts(result.products);
+    updatePaginationControls();
+  }
+});
+
+document.getElementById("nextPage").addEventListener("click", async () => {
+  currentPage++;
+  const result = await fetchProducts(currentPage, limit);
+  if (result.products.length === 0) {
+    currentPage--; // Revert if no data
+    return;
+  }
+  renderProducts(result.products);
+  updatePaginationControls();
+});
+
+// Initial load
+document.addEventListener("DOMContentLoaded", async () => {
+  const result = await fetchProducts(currentPage, limit);
+  renderProducts(result.products);
+  totalPages = Math.ceil(result.total / limit);
+  updatePaginationControls();
+});
