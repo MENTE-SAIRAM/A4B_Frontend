@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000/api/users";
+const API_BASE = "http://13.53.214.239:5000/api/users";
 
 document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("loginForm");
@@ -39,6 +39,16 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Error: " + err.message);
       }
     });
+     mixpanel.identify(user_id);  // Unique user ID
+mixpanel.track("User Logged In", {
+  user_id,
+  time: new Date().toISOString()
+});
+mixpanel.people.set({
+  $name: user_id,
+  role: "customer",
+  login_time: new Date().toISOString()
+});
   }
 
   if (registerForm) {
@@ -63,6 +73,11 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Error: " + err.message);
       }
     });
+    // After successful registration
+mixpanel.track("User Registered", {
+  user_id,
+  time: new Date().toISOString()
+});
   }
 
   const { token, user } = getAuth();
@@ -102,4 +117,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+ 
+
+
 });
+// After successful login
+

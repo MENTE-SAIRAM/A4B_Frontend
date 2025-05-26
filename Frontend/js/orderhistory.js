@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://13.53.214.239:5000/api';
 
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");

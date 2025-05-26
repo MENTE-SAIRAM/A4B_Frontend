@@ -42,6 +42,12 @@ function attachAddToCartEvents() {
 
       const productId = btn.getAttribute("data-id");
       handleAddToCart(productId);
+//   //     mixpanel.track("Added to Cart", {
+//   // product_id: productId,
+//   // quantity: 1,
+//   // time: new Date().toISOString()
+// });
+
     });
   });
 }
@@ -108,3 +114,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   totalPages = Math.ceil(result.total / limit);
   updatePaginationControls();
 });
+// mixpanel.track("Added to Cart", {
+//   product_id: productId,
+//   quantity: 1,
+//   time: new Date().toISOString()
+// });
